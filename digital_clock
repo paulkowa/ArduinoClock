@@ -1,0 +1,299 @@
+#include <stdint.h>
+#include <string.h>
+
+// LED display / SEGMENT pin numbers on display
+//   _A__       A = 14  F = 11
+// F|    |B     B = 16  G = 15
+//  |_G__|      C = 13
+// E|    |C     D = 3
+//  |_D__|      E = 5
+// 4 Segments
+//  1 = 1
+//  2 = 2
+//  3 = 6
+//  4 = 8
+
+// segment | Arduino board PIN number 
+#define G 6
+#define f 7
+#define A 12
+#define B 11
+#define E 8
+#define D 9
+#define C 10
+#define DP1 A0
+#define DP2 A1
+#define AMPM A2
+ 
+// Commonn anode control
+#define SEG1 5
+#define SEG2 4
+#define SEG3 3
+#define SEG4 2
+
+// Keep track of seconds
+unsigned long previous = 0;
+const long onesec = 1000;
+
+// Keep track of current seconds passed since start
+int seconds = 0;
+int minutes = 0;
+int hours = 12;
+int timer = 1200;
+
+// functions to display digits
+void digit0 () {
+digitalWrite(A, LOW);
+digitalWrite(B, LOW);
+digitalWrite(C, LOW);
+digitalWrite(D, LOW);
+digitalWrite(E, LOW);
+digitalWrite(f, LOW);
+digitalWrite(G, HIGH);
+
+};
+
+void digit1 () {
+digitalWrite(A,HIGH);
+digitalWrite(B, LOW);
+digitalWrite(C, LOW);
+digitalWrite(D, HIGH);
+digitalWrite(E, HIGH);
+digitalWrite(f, HIGH);
+digitalWrite(G, HIGH);
+};
+
+void digit2 () {
+digitalWrite(A,LOW);
+digitalWrite(B, LOW);
+digitalWrite(C, HIGH);
+digitalWrite(D, LOW);
+digitalWrite(E, LOW);
+digitalWrite(f, HIGH);
+digitalWrite(G, LOW);
+};
+
+void digit3 () {
+
+digitalWrite(A,LOW);
+digitalWrite(B, LOW);
+digitalWrite(C, LOW);
+digitalWrite(D, LOW);
+digitalWrite(E, HIGH);
+digitalWrite(f, HIGH);
+digitalWrite(G, LOW);
+};
+
+void digit4 () {
+
+digitalWrite(A,HIGH);
+digitalWrite(B, LOW);
+digitalWrite(C, LOW);
+digitalWrite(D, HIGH);
+digitalWrite(E, HIGH);
+digitalWrite(f, LOW);
+digitalWrite(G, LOW);
+};
+
+void digit5 () {
+
+digitalWrite(A,LOW);
+digitalWrite(B, HIGH);
+digitalWrite(C, LOW);
+digitalWrite(D, LOW);
+digitalWrite(E, HIGH);
+digitalWrite(f, LOW);
+digitalWrite(G, LOW);
+};
+
+void digit6 () {
+
+digitalWrite(A,LOW);
+digitalWrite(B, HIGH);
+digitalWrite(C, LOW);
+digitalWrite(D, LOW);
+digitalWrite(E, LOW);
+digitalWrite(f, LOW);
+digitalWrite(G, LOW);
+};
+
+void digit7 () {
+
+digitalWrite(A,LOW);
+digitalWrite(B, LOW);
+digitalWrite(C, LOW);
+digitalWrite(D, HIGH);
+digitalWrite(E, HIGH);
+digitalWrite(f, HIGH);
+digitalWrite(G, HIGH);
+};
+
+void digit8 () {
+
+digitalWrite(A, LOW);
+digitalWrite(B, LOW);
+digitalWrite(C, LOW);
+digitalWrite(D, LOW);
+digitalWrite(E, LOW);
+digitalWrite(f, LOW);
+digitalWrite(G, LOW);
+
+};
+
+void digit9 () {
+
+digitalWrite(A, LOW);
+digitalWrite(B, LOW);
+digitalWrite(C, LOW);
+digitalWrite(D, LOW);
+digitalWrite(E, HIGH);
+digitalWrite(f, LOW);
+digitalWrite(G, LOW);
+
+};
+
+//function to display digit from inputed int
+
+void showdigit (int digit) {
+
+ switch (digit) {
+
+ case 0:
+ digit0 ();
+ break;
+
+ case 1:
+ digit1 ();
+ break;
+
+ case 2:
+ digit2 ();
+ break;
+
+ case 3:
+ digit3 ();
+ break;
+
+ case 4:
+ digit4 ();
+ break;
+
+ case 5:
+ digit5 ();
+ break;
+
+ case 6:
+ digit6 ();
+ break;
+
+ case 7:
+ digit7 ();
+ break;
+
+ case 8:
+ digit8 ();
+ break;
+
+ case 9:
+ digit9 ();
+ break;
+
+ default:
+
+ break;
+
+ }; 
+
+};
+
+// showing 4 digits
+void showdigits (int number) {
+
+// e.g. we have "1234"
+showdigit(number/1000);  // segments are set to display "1"
+digitalWrite(SEG1, HIGH); // first digit on,
+digitalWrite(SEG2, LOW); // other off
+digitalWrite(SEG3, LOW);
+digitalWrite(SEG4, LOW);
+
+delay (1);
+
+number = number%1000;  // remainder of 1234/1000 is 234
+digitalWrite(SEG1, LOW); // first digit is off
+ showdigit(number/100); //// segments are set to display "2"
+digitalWrite(SEG2, HIGH); // second digit is on
+ delay (1); // and so on....
+
+number =number%100;    
+digitalWrite(SEG2, LOW);
+showdigit(number/10);
+digitalWrite(SEG3, HIGH);
+delay (1);
+
+number =number%10; 
+digitalWrite(SEG3, LOW);
+showdigit(number); 
+digitalWrite(SEG4, HIGH);
+ delay (1);
+
+};
+
+void updatetime() {
+    seconds = 0;
+    minutes++;
+    if(minutes == 60) {
+      if(hours == 12) {
+        hours = 1;        
+      }
+      else {
+        hours++;
+      }
+      minutes = 0;
+    }
+
+    String h = String(hours);
+    String m = String(minutes);
+    String t = "";
+    if(m.length() < 2) {
+      m = '0' + m;
+    }
+    t = h + m;
+    timer = t.toInt();
+};
+
+void setup() {
+
+pinMode(A, OUTPUT);
+pinMode(B, OUTPUT);
+pinMode(C, OUTPUT);
+pinMode(D, OUTPUT);
+pinMode(E, OUTPUT);
+pinMode(f, OUTPUT);
+pinMode(G, OUTPUT);
+pinMode(DP1, OUTPUT);
+pinMode(DP2, OUTPUT);
+
+pinMode(SEG1, OUTPUT);
+pinMode(SEG2, OUTPUT);
+pinMode(SEG3, OUTPUT);
+pinMode(SEG4, OUTPUT);
+
+};
+void loop () {
+  unsigned long current = millis();
+  if(current - previous >= onesec) {
+    previous = current;
+    if(seconds == 60) {
+      updatetime();
+    }
+    showdigits(timer);
+    seconds++;
+    }
+  else {
+    showdigits(timer);
+    }
+
+    // Display ":"
+    digitalWrite(DP1, HIGH);
+    digitalWrite(DP2, LOW);
+}; 
