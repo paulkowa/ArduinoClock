@@ -1,6 +1,3 @@
-#include <stdint.h>
-#include <string.h>
-
 // LED display / SEGMENT pin numbers on display
 //   _A__       A = 14  F = 11
 // F|    |B     B = 16  G = 15
